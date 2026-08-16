@@ -22,7 +22,7 @@ import Expense from "./pages/Expense";
 import Income from "./pages/Income";
 import Profile from "./pages/Profile";
 
-const API_URL = "http://localhost:1234/api";
+const API_URL = "https://expense-tracker-system-2-fgq5.onrender.com/api";
 
 // ======================================================
 // STORAGE HELPERS

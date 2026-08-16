@@ -27,7 +27,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { profileStyles } from "../assets/dummyStyles";
 
-const BASE_URL = "http://localhost:1234/api";
+const BASE_URL ="https://expense-tracker-system-2-fgq5.onrender.com/api";
 
 Modal.setAppElement("#root");
 

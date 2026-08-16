@@ -97,9 +97,12 @@ const TransictionItem = ({
   const handleEditClick = () => {
     setEditForm({
       description:
+
         transaction.description ?? "",
 
+
       amount:
+      
         transaction.amount ?? "",
 
       category:

@@ -33,7 +33,7 @@ import {
 import axios from "axios";
 import { Outlet } from "react-router-dom";
 
-const API_BASE = "http://localhost:1234/api";
+const API_BASE = "https://expense-tracker-system-2-fgq5.onrender.com/api";
 
 // ======================================================
 // CATEGORY ICONS

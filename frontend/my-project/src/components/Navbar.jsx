@@ -5,8 +5,7 @@ import axios from "axios";
 
 import { navbarStyles } from "../assets/dummyStyles";
 import img1 from "../assets/logo.png";
-
-const BASE_URL = "http://localhost:1234/api";
+const API_BASE = "https://expense-tracker-system-2-fgq5.onrender.com/api";
 
 const Navbar = ({ user: propUser, onLogout }) => {
   const navigate = useNavigate();
