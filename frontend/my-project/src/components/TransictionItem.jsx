@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 import { transactionItemStyles } from "../assets/dummyStyles";
-import { colorClasses } from "../assets/color";
+import { colorClasses } from "../assets/Color";
 
 const TransictionItem = ({
   transaction,
@@ -107,7 +107,7 @@ const TransictionItem = ({
 
       category:
         transaction.category ?? "",
-        
+
 
       date:
         transaction.date
