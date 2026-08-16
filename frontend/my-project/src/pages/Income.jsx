@@ -46,7 +46,7 @@ import {
 import {
   INCOME_COLORS,
   CATEGORY_ICONS_Inc,
-} from "../assets/color";
+} from "../assets/Color";
 
 import {
   incomeStyles as styles,

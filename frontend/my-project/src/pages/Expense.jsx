@@ -41,7 +41,7 @@ import {
   generateChartPoints,
 } from "../components/Helpers";
 
-import { CATEGORY_ICONS } from "../assets/color";
+import { CATEGORY_ICONS } from "../assets/Color";
 import { expensePageStyles as styles } from "../assets/dummyStyles";
 
 // ======================================================

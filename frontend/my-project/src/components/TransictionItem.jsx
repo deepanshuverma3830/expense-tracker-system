@@ -102,11 +102,12 @@ const TransictionItem = ({
 
 
       amount:
-      
+
         transaction.amount ?? "",
 
       category:
         transaction.category ?? "",
+        
 
       date:
         transaction.date
