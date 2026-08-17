@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate,Link} from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
   Eye,
@@ -12,10 +13,18 @@ import {
 
 import { signupStyles } from "../assets/dummyStyles";
 
-const Signup = ({
-  API_URL= "https://expense-tracker-system-2-fgq5.onrender.com/api",
-  onSignup,
-}) => {
+// ======================================================
+// API
+// ======================================================
+
+const API_URL =
+  "https://expense-tracker-system-2-fgq5.onrender.com/api";
+
+// ======================================================
+// SIGNUP COMPONENT
+// ======================================================
+
+const Signup = ({ onSignup }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,10 +35,14 @@ const Signup = ({
 
   const navigate = useNavigate();
 
+  // ======================================================
+  // GET PROFILE
+  // ======================================================
+
   const fetchProfile = async (token) => {
     if (!token) return null;
 
-    const res = await axios.get(
+    const response = await axios.get(
       `${API_URL}/user/me`,
       {
         headers: {
@@ -38,8 +51,12 @@ const Signup = ({
       }
     );
 
-    return res.data;
+    return response.data?.user || null;
   };
+
+  // ======================================================
+  // SAVE AUTH
+  // ======================================================
 
   const persistAuth = (profile, token) => {
     const storage = rememberMe
@@ -62,6 +79,10 @@ const Signup = ({
     }
   };
 
+  // ======================================================
+  // VALIDATION
+  // ======================================================
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -71,15 +92,19 @@ const Signup = ({
 
     if (!email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        email.trim()
+      )
+    ) {
       newErrors.email = "Email is invalid";
     }
 
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 6) {
+    } else if (password.length < 8) {
       newErrors.password =
-        "Password must be at least 6 characters";
+        "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
@@ -87,21 +112,36 @@ const Signup = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // ======================================================
+  // SUBMIT
+  // ======================================================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log(
+      "========== SIGNUP BUTTON CLICKED =========="
+    );
+
     setErrors({});
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
-    setIsLoading(false);
+    setIsLoading(true);
 
     try {
+      console.log(
+        "REGISTER URL:",
+        `${API_URL}/user/register`
+      );
+
       const response = await axios.post(
         `${API_URL}/user/register`,
         {
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
           password,
         },
         {
@@ -111,94 +151,105 @@ const Signup = ({
         }
       );
 
+      console.log(
+        "SIGNUP RESPONSE:",
+        response.data
+      );
+
       const data = response.data || {};
 
-      const token = data.token ?? null;
+      const token = data.token || null;
 
-      let profile = data.user ?? null;
+      let profile = data.user || null;
 
-      if (!profile) {
-        const copy = { ...data };
-
-        delete copy.token;
-        delete copy.user;
-
-        if (Object.keys(copy).length) {
-          profile = copy;
-        }
-      }
+      // ==================================================
+      // IF USER NOT RETURNED BUT TOKEN IS AVAILABLE
+      // ==================================================
 
       if (!profile && token) {
         try {
           profile = await fetchProfile(token);
-        } catch (fetchErr) {
+        } catch (profileError) {
           console.warn(
-            "Could not fetch profile after signup token:",
-            fetchErr
+            "Could not fetch profile:",
+            profileError
           );
-
-          profile = null;
         }
       }
+
+      // ==================================================
+      // FALLBACK PROFILE
+      // ==================================================
 
       if (!profile) {
         profile = {
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
         };
       }
 
-      persistAuth(profile, token);
+      // ==================================================
+      // SAVE AUTH
+      // ==================================================
 
-      if (typeof onSignup === "function") {
-        try {
-          onSignup(
-            profile,
-            rememberMe,
-            token
-          );
-        } catch (callErr) {
-          console.warn(
-            "onSignup threw:",
-            callErr
-          );
-
-          navigate("/");
-        }
-      } else {
-        navigate("/");
+      if (token) {
+        persistAuth(profile, token);
       }
 
-      setPassword("");
-    } catch (err) {
-      console.error(
-        "Signup error:",
-        err?.response || err
+      console.log(
+        "SIGNUP AUTH SAVED:",
+        Boolean(token)
       );
 
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else if (err.response?.data?.message) {
-        setErrors({
-          api: err.response.data.message,
-        });
-      } else {
-        setErrors({
-          api:
-            err.message ||
-            "An unexpected error occurred",
-        });
+      // ==================================================
+      // CALL APP CALLBACK
+      // ==================================================
+
+      if (typeof onSignup === "function") {
+        onSignup(
+          profile,
+          rememberMe,
+          token
+        );
       }
+
+      // ==================================================
+      // REDIRECT
+      // ==================================================
+
+      navigate("/dashboard", {
+        replace: true,
+      });
+
+      setPassword("");
+    } catch (error) {
+      console.error(
+        "SIGNUP ERROR:",
+        error?.response?.data || error
+      );
+
+      const message =
+        error?.response?.data?.message ||
+        "Unable to create account";
+
+      setErrors({
+        api: message,
+      });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // ======================================================
+  // UI
+  // ======================================================
 
   return (
     <div className={signupStyles.pageContainer}>
       <div className={signupStyles.cardContainer}>
 
         {/* HEADER */}
+
         <div className={signupStyles.header}>
 
           <button
@@ -220,9 +271,11 @@ const Signup = ({
           <p className={signupStyles.formContainer}>
             Join ExpenseFlow to manage your finances
           </p>
+
         </div>
 
         {/* FORM */}
+
         <div className={signupStyles.formContainer}>
 
           {errors.api && (
@@ -237,15 +290,24 @@ const Signup = ({
           >
 
             {/* NAME */}
+
             <div className="mb-6">
 
               <label htmlFor="name">
                 Full Name
               </label>
 
-              <div className={signupStyles.inputContainer}>
+              <div
+                className={
+                  signupStyles.inputContainer
+                }
+              >
 
-                <div className={signupStyles.inputIcon}>
+                <div
+                  className={
+                    signupStyles.inputIcon
+                  }
+                >
                   <User className="w-5 h-5" />
                 </div>
 
@@ -268,7 +330,11 @@ const Signup = ({
               </div>
 
               {errors.name && (
-                <p className={signupStyles.fieldError}>
+                <p
+                  className={
+                    signupStyles.fieldError
+                  }
+                >
                   {errors.name}
                 </p>
               )}
@@ -276,15 +342,24 @@ const Signup = ({
             </div>
 
             {/* EMAIL */}
+
             <div className="mb-6">
 
               <label htmlFor="email">
                 Email
               </label>
 
-              <div className={signupStyles.inputContainer}>
+              <div
+                className={
+                  signupStyles.inputContainer
+                }
+              >
 
-                <div className={signupStyles.inputIcon}>
+                <div
+                  className={
+                    signupStyles.inputIcon
+                  }
+                >
                   <Mail className="w-5 h-5" />
                 </div>
 
@@ -301,13 +376,17 @@ const Signup = ({
                       ? "border-red-300"
                       : "border-gray-300"
                   }`}
-                  placeholder="yours@mail.com"
+                  placeholder="your@mail.com"
                 />
 
               </div>
 
               {errors.email && (
-                <p className={signupStyles.fieldError}>
+                <p
+                  className={
+                    signupStyles.fieldError
+                  }
+                >
                   {errors.email}
                 </p>
               )}
@@ -315,15 +394,24 @@ const Signup = ({
             </div>
 
             {/* PASSWORD */}
+
             <div className="mb-6">
 
               <label htmlFor="password">
                 Password
               </label>
 
-              <div className={signupStyles.inputContainer}>
+              <div
+                className={
+                  signupStyles.inputContainer
+                }
+              >
 
-                <div className={signupStyles.inputIcon}>
+                <div
+                  className={
+                    signupStyles.inputIcon
+                  }
+                >
                   <Lock className="w-5 h-5" />
                 </div>
 
@@ -350,7 +438,9 @@ const Signup = ({
                 <button
                   type="button"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowPassword(
+                      (prev) => !prev
+                    )
                   }
                   className={
                     signupStyles.passwordToggle
@@ -366,7 +456,11 @@ const Signup = ({
               </div>
 
               {errors.password && (
-                <p className={signupStyles.fieldError}>
+                <p
+                  className={
+                    signupStyles.fieldError
+                  }
+                >
                   {errors.password}
                 </p>
               )}
@@ -374,6 +468,7 @@ const Signup = ({
             </div>
 
             {/* REMEMBER ME */}
+
             <div
               className={
                 signupStyles.checkboxContainer
@@ -385,7 +480,9 @@ const Signup = ({
                 id="remember"
                 checked={rememberMe}
                 onChange={(e) =>
-                  setRememberMe(e.target.checked)
+                  setRememberMe(
+                    e.target.checked
+                  )
                 }
                 className={
                   signupStyles.checkbox
@@ -404,20 +501,23 @@ const Signup = ({
             </div>
 
             {/* SUBMIT */}
+
             <button
               type="submit"
+              disabled={isLoading}
               className={`${signupStyles.button} ${
                 isLoading
                   ? signupStyles.buttonDisabled
                   : ""
               }`}
-              disabled={isLoading}
             >
 
               {isLoading ? (
                 <>
                   <svg
-                    className={signupStyles.spinner}
+                    className={
+                      signupStyles.spinner
+                    }
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -447,15 +547,32 @@ const Signup = ({
             </button>
 
           </form>
-          <div className={signupStyles.signInContainer}>
-            <p className={signupStyles.signInText}>
-              Already have't an account?{" "}
-              <Link to="/login" className={signupStyles.signInLink}>
-              Sign in
-</Link>
-            </p>
 
+          {/* LOGIN LINK */}
+
+          <div
+            className={
+              signupStyles.signInContainer
+            }
+          >
+            <p
+              className={
+                signupStyles.signInText
+              }
+            >
+              Already have an account?{" "}
+
+              <Link
+                to="/login"
+                className={
+                  signupStyles.signInLink
+                }
+              >
+                Sign in
+              </Link>
+            </p>
           </div>
+
         </div>
       </div>
     </div>
@@ -463,3 +580,4 @@ const Signup = ({
 };
 
 export default Signup;
+
