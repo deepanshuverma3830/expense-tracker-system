@@ -13,7 +13,7 @@ import {
 import { signupStyles } from "../assets/dummyStyles";
 
 const Signup = ({
-  API_URL =  = "https://expense-tracker-system-2-fgq5.onrender.com/",
+  API_URL= "https://expense-tracker-system-2-fgq5.onrender.com/api",
   onSignup,
 }) => {
   const [name, setName] = useState("");
