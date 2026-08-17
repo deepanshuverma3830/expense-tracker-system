@@ -30,7 +30,7 @@ const Signup = ({
     if (!token) return null;
 
     const res = await axios.get(
-      `${API_URL}/api/user/me`,
+      `${API_URL}/user/me`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ const Signup = ({
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/user/register`,
+        `${API_URL}/user/register`,
         {
           name,
           email,
